@@ -1,0 +1,64 @@
+# Nome do workflow
+name: Test and Deploy (Functions Core Tooling)
+
+# Eventos que disparam o workflow
+on:
+  # Quando há um push na branch main
+  push:
+   branches: [ main ]
+   # Ignorar mudanças nesses arquivos específicos
+   paths-ignore: 
+     - '**/README.md'
+     - '**/*.yml'
+  # Quando um pull request é aberto para a branch main
+  pull_request:
+   branches: [ main ]
+  # Permite disparar o workflow manualmente a partir do GitHub
+  workflow_dispatch:
+  
+# Variáveis de ambiente que serão usadas no workflow
+env:
+  AZURE_FUNCTIONAPP_NAME: ecommerceappcurso  # Nome do recurso da function app no Azure
+  AZURE_FUNCTION_PROJ_PATH: src  # Caminho para o projeto da function app
+  ROOT_SOLUTION_PATH: src # Caminho para o arquivo de solução/projeto
+  DOTNET_VERSION: '7.0.x' # Versão do .NET a ser usada
+
+# Jobs que serão executados
+jobs:
+  # Job para build
+  build:
+    # O job será executado nessa máquina virtual
+    runs-on: ubuntu-latest
+    
+    # Passos que serão executados dentro do job
+    steps:
+      # Autenticação no Azure como Service Principal
+      - name: Authenticate to Azure as a Service Principal
+        uses: azure/login@v1
+        with:
+          # Precisa criar um secret "AZURE_CREDS_FUNCTION_APP" 
+          creds: ${{ secrets.AZURE_CREDS_FUNCTION_APP }}
+    
+      # Busca o último commit do código fonte
+      - name: Get the latest source code commit
+        uses: actions/checkout@v2
+        
+      # Configura o .NET (Instala o .net)
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      # Renomeia o arquivo build.settings.json para local.settings.json
+      - name: Rename build.settings.json to local.settings.json
+        run: mv build.settings.json local.settings.json
+        working-directory: ${{ env.AZURE_FUNCTION_PROJ_PATH }}
+        
+      # Instala as Azure Functions Core Tools
+      - name: Install Azure Functions Core Tools
+        run: npm i -g azure-functions-core-tools@4 --unsafe-perm true
+      
+      # Publica a Azure Function App
+      - name: Publish Azure Function App
+        run: func azure functionapp publish ${{ env.AZURE_FUNCTIONAPP_NAME }}
+        working-directory: ${{ env.AZURE_FUNCTION_PROJ_PATH }}
