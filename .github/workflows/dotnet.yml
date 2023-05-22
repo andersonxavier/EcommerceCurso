@@ -18,7 +18,7 @@ on:
   
 # Variáveis de ambiente que serão usadas no workflow
 env:
-  AZURE_FUNCTIONAPP_NAME: ecommerceappcurso  # Nome do recurso da function app no Azure
+  AZURE_FUNCTIONAPP_NAME: ecommerceappcursoax  # Nome do recurso da function app no Azure
   AZURE_FUNCTION_PROJ_PATH: src  # Caminho para o projeto da function app
   ROOT_SOLUTION_PATH: src # Caminho para o arquivo de solução/projeto
   DOTNET_VERSION: '7.0.x' # Versão do .NET a ser usada
